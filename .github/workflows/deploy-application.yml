@@ -14,7 +14,7 @@ on:
           - prod
 
 env:
-  AZURE_RESOURCE_GROUP: 'rg-codingagentdemo-${{ github.event.inputs.environment }}'
+  AZURE_RESOURCE_GROUP: 'rg-blazorwebappmovies-${{ github.event.inputs.environment }}'
   ENVIRONMENT: '${{ github.event.inputs.environment }}'
   DOTNET_VERSION: '8.0.x'
 
@@ -32,14 +32,14 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Restore .NET dependencies
-      run: dotnet restore BlazorHero.CleanArchitecture.sln
+      run: dotnet restore BlazorWebAppMovies.sln
 
     - name: Build
-      run: dotnet build BlazorHero.CleanArchitecture.sln --configuration Release --no-restore
+      run: dotnet build BlazorWebAppMovies.sln --configuration Release --no-restore
 
     - name: Publish
       run: |
-        dotnet publish src/Server/Server.csproj \
+        dotnet publish BlazorWebAppMovies.csproj \
           --configuration Release \
           --output ./publish \
           --no-build
