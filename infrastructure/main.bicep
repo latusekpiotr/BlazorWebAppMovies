@@ -5,7 +5,7 @@ param environmentName string = 'dev'
 param location string = resourceGroup().location
 
 @description('The name prefix for all resources')
-param appName string = 'codingagentdemo'
+param appName string = 'blazorwebappmovies'
 
 // Variables
 var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 6)
@@ -29,7 +29,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
   }
   tags: {
     Environment: environmentName
-    Project: 'CopilotCodingAgentDemo'
+    Project: 'BlazorWebAppMovies'
   }
 }
 
@@ -70,7 +70,7 @@ resource appService 'Microsoft.Web/sites@2023-01-01' = {
   }
   tags: {
     Environment: environmentName
-    Project: 'CopilotCodingAgentDemo'
+    Project: 'BlazorWebAppMovies'
   }
 }
 
