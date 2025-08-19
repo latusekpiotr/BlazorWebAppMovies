@@ -1,0 +1,198 @@
+@page "/todolists/details"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using BlazorWebAppMovies.Models
+@inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Todo List</h2>
+    <hr />
+    @if (todoList is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@todoList.Name</dd>
+            <dt class="col-sm-2">Total Items</dt>
+            <dd class="col-sm-10">@todoList.Items.Count</dd>
+            <dt class="col-sm-2">Completed</dt>
+            <dd class="col-sm-10">@todoList.Items.Count(i => i.IsCompleted)</dd>
+            <dt class="col-sm-2">Remaining</dt>
+            <dd class="col-sm-10">@todoList.Items.Count(i => !i.IsCompleted)</dd>
+        </dl>
+
+        <h3>Items</h3>
+        
+        <!-- Add new item form -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Add New Item</h5>
+                <EditForm Model="newItem" OnValidSubmit="AddItem" FormName="addItem">
+                    <DataAnnotationsValidator />
+                    <div class="input-group">
+                        <InputText @bind-Value="newItem.Name" class="form-control" placeholder="Enter item name" />
+                        <button type="submit" class="btn btn-primary">Add Item</button>
+                    </div>
+                    <ValidationMessage For="() => newItem.Name" class="text-danger" />
+                </EditForm>
+            </div>
+        </div>
+
+        <!-- Items list -->
+        @if (todoList.Items.Any())
+        {
+            <div class="list-group">
+                @foreach (var item in todoList.Items.OrderBy(i => i.IsCompleted).ThenBy(i => i.Name))
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center @(item.IsCompleted ? "bg-light" : "")">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" checked="@item.IsCompleted" 
+                                   @onchange="() => ToggleItemCompletion(item)" />
+                            <label class="form-check-label @(item.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                                @if (editingItemId == item.Id)
+                                {
+                                    <EditForm Model="editingItem" OnValidSubmit="SaveItemEdit" FormName="editItem">
+                                        <div class="input-group input-group-sm">
+                                            <InputText @bind-Value="editingItem!.Name" class="form-control" />
+                                            <button type="submit" class="btn btn-sm btn-success">Save</button>
+                                            <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                                        </div>
+                                    </EditForm>
+                                }
+                                else
+                                {
+                                    @item.Name
+                                }
+                            </label>
+                        </div>
+                        @if (editingItemId != item.Id)
+                        {
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => StartEdit(item)">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteItem(item)">Delete</button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">No items in this list yet.</p>
+        }
+
+        <div class="mt-3">
+            <a href="@($"/todolists/edit?id={todoList.Id}")">Edit</a> |
+            <a href="@($"/todolists")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private TodoList? todoList;
+    private TodoItem newItem = new();
+    private TodoItem? editingItem;
+    private int? editingItemId;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTodoList();
+    }
+
+    private async Task LoadTodoList()
+    {
+        using var context = DbFactory.CreateDbContext();
+        todoList = await context.TodoList
+            .Include(tl => tl.Items)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (todoList is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task AddItem()
+    {
+        if (todoList is null || string.IsNullOrWhiteSpace(newItem.Name))
+            return;
+
+        using var context = DbFactory.CreateDbContext();
+        var item = new TodoItem
+        {
+            Name = newItem.Name,
+            TodoListId = todoList.Id,
+            IsCompleted = false
+        };
+
+        context.TodoItem.Add(item);
+        await context.SaveChangesAsync();
+
+        newItem = new TodoItem(); // Reset form
+        await LoadTodoList(); // Reload to get updated items
+    }
+
+    private async Task ToggleItemCompletion(TodoItem item)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var dbItem = await context.TodoItem.FindAsync(item.Id);
+        if (dbItem is not null)
+        {
+            dbItem.IsCompleted = !dbItem.IsCompleted;
+            await context.SaveChangesAsync();
+            await LoadTodoList(); // Reload to get updated state
+        }
+    }
+
+    private void StartEdit(TodoItem item)
+    {
+        editingItemId = item.Id;
+        editingItem = new TodoItem { Id = item.Id, Name = item.Name, IsCompleted = item.IsCompleted, TodoListId = item.TodoListId };
+    }
+
+    private void CancelEdit()
+    {
+        editingItemId = null;
+        editingItem = null;
+    }
+
+    private async Task SaveItemEdit()
+    {
+        if (editingItem is null)
+            return;
+
+        using var context = DbFactory.CreateDbContext();
+        var dbItem = await context.TodoItem.FindAsync(editingItem.Id);
+        if (dbItem is not null)
+        {
+            dbItem.Name = editingItem.Name;
+            await context.SaveChangesAsync();
+            await LoadTodoList(); // Reload to get updated items
+        }
+
+        editingItemId = null;
+        editingItem = null;
+    }
+
+    private async Task DeleteItem(TodoItem item)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var dbItem = await context.TodoItem.FindAsync(item.Id);
+        if (dbItem is not null)
+        {
+            context.TodoItem.Remove(dbItem);
+            await context.SaveChangesAsync();
+            await LoadTodoList(); // Reload to get updated items
+        }
+    }
+}

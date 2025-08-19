@@ -1,0 +1,73 @@
+@page "/todolists/delete"
+@using Microsoft.EntityFrameworkCore
+@using BlazorWebAppMovies.Models
+@inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Delete</PageTitle>
+
+<h1>Delete</h1>
+
+<h2>Are you sure you want to delete this?</h2>
+<div>
+    <h3>Todo List</h3>
+    <hr />
+    @if (todoList is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@todoList.Name</dd>
+            <dt class="col-sm-2">Total Items</dt>
+            <dd class="col-sm-10">@todoList.Items.Count</dd>
+            <dt class="col-sm-2">Completed Items</dt>
+            <dd class="col-sm-10">@todoList.Items.Count(i => i.IsCompleted)</dd>
+        </dl>
+        
+        <EditForm method="post" Model="todoList" OnValidSubmit="DeleteTodoList" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(todoList is null)">Delete</button> |
+            <a href="/todolists">Back to List</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private TodoList? todoList;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        todoList = await context.TodoList
+            .Include(tl => tl.Items)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (todoList is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteTodoList()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var todoListToDelete = await context.TodoList
+            .Include(tl => tl.Items)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (todoListToDelete is not null)
+        {
+            // First delete all items
+            context.TodoItem.RemoveRange(todoListToDelete.Items);
+            // Then delete the list
+            context.TodoList.Remove(todoListToDelete);
+            await context.SaveChangesAsync();
+        }
+
+        NavigationManager.NavigateTo("/todolists");
+    }
+}
