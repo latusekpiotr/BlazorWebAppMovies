@@ -1,4 +1,5 @@
 using BlazorWebAppMovies.Components;
+using BlazorWebAppMovies.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using BlazorWebAppMovies.Data;
@@ -15,8 +16,11 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 // Configure MyFlood API
 builder.Services.Configure<MyFloodOptions>(
     builder.Configuration.GetSection("MyFlood"));
-
 builder.Services.AddHttpClient<MyFloodApiService>();
+
+// Register HttpClient and weather services
+builder.Services.AddHttpClient<OpenMeteoService>();
+builder.Services.AddHttpClient<NominatimService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
