@@ -7,30 +7,57 @@
 @inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
 @implements IAsyncDisposable
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Movies</PageTitle>
 
-<h1>Index</h1>
+<div class="movies-header">
+    <h1 class="display-4 text-primary mb-4">🎬 Movie Collection</h1>
+    <p class="lead text-muted">Discover and manage your favorite movies</p>
+</div>
 
-<p>
-    <input type="search" @bind="titleFilter" @bind:event="oninput" />
-</p>
+<div class="movies-controls mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div class="search-container">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="search" 
+                           @bind="titleFilter" 
+                           @bind:event="oninput" 
+                           class="form-control border-start-0 ps-0" 
+                           placeholder="Search movies by title..." />
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="movies/create" class="btn btn-primary btn-lg shadow-sm">
+                <i class="fas fa-plus me-2"></i>Add New Movie
+            </a>
+        </div>
+    </div>
+</div>
 
-<p>
-    <a href="movies/create">Create New</a>
-</p>
+<div class="table-container">
+    <QuickGrid Class="table table-hover table-striped modern-table" Items="FilteredMovies" Pagination="pagination">
+        <PropertyColumn Property="movie => movie.Title" Sortable="true" Title="Title" />
+        <PropertyColumn Property="movie => movie.ReleaseDate" Title="Release Date" Format="yyyy-MM-dd" />
+        <PropertyColumn Property="movie => movie.Genre" Title="Genre" />
+        <PropertyColumn Property="movie => movie.Price" Title="Price" Format="C" />
+        <PropertyColumn Property="movie => movie.Rating" Title="Rating" />
 
-<div>
-    <QuickGrid Class="table" Items="FilteredMovies" Pagination="pagination">
-        <PropertyColumn Property="movie => movie.Title" Sortable="true" />
-        <PropertyColumn Property="movie => movie.ReleaseDate" Title="Release Date" />
-        <PropertyColumn Property="movie => movie.Genre" />
-        <PropertyColumn Property="movie => movie.Price" />
-        <PropertyColumn Property="movie => movie.Rating" />
-
-        <TemplateColumn Context="movie">
-            <a href="@($"movies/edit?id={movie.Id}")">Edit</a> |
-            <a href="@($"movies/details?id={movie.Id}")">Details</a> |
-            <a href="@($"movies/delete?id={movie.Id}")">Delete</a>
+        <TemplateColumn Context="movie" Title="Actions" Class="text-center">
+            <div class="action-buttons">
+                <a href="@($"movies/edit?id={movie.Id}")" class="btn btn-outline-primary btn-sm me-1" title="Edit">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="@($"movies/details?id={movie.Id}")" class="btn btn-outline-info btn-sm me-1" title="Details">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="@($"movies/delete?id={movie.Id}")" class="btn btn-outline-danger btn-sm" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
         </TemplateColumn>
     </QuickGrid>
 </div>
