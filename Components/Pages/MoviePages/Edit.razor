@@ -36,7 +36,7 @@ else
                 <EditForm method="post" Model="Movie" OnValidSubmit="UpdateMovie" FormName="edit" Enhance>
                     <DataAnnotationsValidator />
                     
-                    @if (Context.GetValidationMessages().Any())
+                    @if (context.GetValidationMessages().Any())
                     {
                         <div class="alert alert-danger validation-summary" role="alert">
                             <h6><i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:</h6>
