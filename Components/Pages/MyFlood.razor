@@ -1,0 +1,322 @@
+@page "/myflood"
+@rendermode InteractiveServer
+@using BlazorWebAppMovies.Models.MyFlood
+@using BlazorWebAppMovies.Services
+@inject MyFloodApiService MyFloodService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>MyFlood - Residential Quote</PageTitle>
+
+<h1>MyFlood - Residential Flood Insurance Quote</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                @errorMessage
+            </div>
+        }
+
+        @if (quoteResponse != null)
+        {
+            <div class="alert alert-success" role="alert">
+                <h4 class="alert-heading">Quote Generated Successfully!</h4>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Quote ID:</strong> @quoteResponse.QuoteId</p>
+                        <p><strong>Annual Premium:</strong> @quoteResponse.Premium.ToString("C")</p>
+                        <p><strong>Effective Date:</strong> @quoteResponse.EffectiveDate.ToString("MM/dd/yyyy")</p>
+                        <p><strong>Expiration Date:</strong> @quoteResponse.ExpirationDate.ToString("MM/dd/yyyy")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Building Coverage:</strong> @quoteResponse.CoverageDetails.BuildingCoverage.ToString("C0")</p>
+                        <p><strong>Contents Coverage:</strong> @quoteResponse.CoverageDetails.ContentsCoverage.ToString("C0")</p>
+                        <p><strong>Deductible:</strong> @quoteResponse.CoverageDetails.Deductible.ToString("C0")</p>
+                        <p><strong>Flood Zone:</strong> @quoteResponse.CoverageDetails.FloodZone</p>
+                    </div>
+                </div>
+                <button class="btn btn-primary" @onclick="ResetForm">Get Another Quote</button>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@quoteRequest" OnValidSubmit="@SubmitQuote" FormName="myflood-quote">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+
+                <!-- Location Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Property Location</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="address" class="form-label">Address:</label>
+                                <InputText id="address" @bind-Value="quoteRequest.Location.Address" class="form-control" placeholder="123 Main Street" />
+                                <ValidationMessage For="() => quoteRequest.Location.Address" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="city" class="form-label">City:</label>
+                                <InputText id="city" @bind-Value="quoteRequest.Location.City" class="form-control" placeholder="Anytown" />
+                                <ValidationMessage For="() => quoteRequest.Location.City" class="text-danger" />
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="state" class="form-label">State:</label>
+                                <InputSelect id="state" @bind-Value="quoteRequest.Location.State" class="form-select">
+                                    <option value="">Select State</option>
+                                    @foreach (var state in PropertyEnums.States)
+                                    {
+                                        <option value="@state.Key">@state.Value</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => quoteRequest.Location.State" class="text-danger" />
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="zipCode" class="form-label">ZIP Code:</label>
+                                <InputText id="zipCode" @bind-Value="quoteRequest.Location.ZipCode" class="form-control" placeholder="12345" />
+                                <ValidationMessage For="() => quoteRequest.Location.ZipCode" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="floodZone" class="form-label">Flood Zone:</label>
+                                <InputSelect id="floodZone" @bind-Value="quoteRequest.Location.FloodZone" class="form-select">
+                                    <option value="">Select Flood Zone</option>
+                                    @foreach (var zone in PropertyEnums.FloodZones)
+                                    {
+                                        <option value="@zone.Key">@zone.Value</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => quoteRequest.Location.FloodZone" class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Details Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Property Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="propertyType" class="form-label">Property Type:</label>
+                                <InputSelect id="propertyType" @bind-Value="quoteRequest.PropertyDetails.PropertyType" class="form-select">
+                                    <option value="">Select Property Type</option>
+                                    @foreach (var type in PropertyEnums.PropertyTypes)
+                                    {
+                                        <option value="@type.Key">@type.Value</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => quoteRequest.PropertyDetails.PropertyType" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="constructionType" class="form-label">Construction Type:</label>
+                                <InputSelect id="constructionType" @bind-Value="quoteRequest.PropertyDetails.ConstructionType" class="form-select">
+                                    <option value="">Select Construction Type</option>
+                                    @foreach (var type in PropertyEnums.ConstructionTypes)
+                                    {
+                                        <option value="@type.Key">@type.Value</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => quoteRequest.PropertyDetails.ConstructionType" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="yearBuilt" class="form-label">Year Built:</label>
+                                <InputNumber id="yearBuilt" @bind-Value="quoteRequest.PropertyDetails.YearBuilt" class="form-control" />
+                                <ValidationMessage For="() => quoteRequest.PropertyDetails.YearBuilt" class="text-danger" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="squareFootage" class="form-label">Square Footage:</label>
+                                <InputNumber id="squareFootage" @bind-Value="quoteRequest.PropertyDetails.SquareFootage" class="form-control" />
+                                <ValidationMessage For="() => quoteRequest.PropertyDetails.SquareFootage" class="text-danger" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="numberOfFloors" class="form-label">Number of Floors:</label>
+                                <InputSelect id="numberOfFloors" @bind-Value="quoteRequest.PropertyDetails.NumberOfFloors" class="form-select">
+                                    <option value="0">Select Number of Floors</option>
+                                    @foreach (var floors in PropertyEnums.NumberOfFloors)
+                                    {
+                                        <option value="@floors.Key">@floors.Value</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => quoteRequest.PropertyDetails.NumberOfFloors" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="basement" class="form-label">Basement:</label>
+                                <InputSelect id="basement" @bind-Value="quoteRequest.PropertyDetails.Basement" class="form-select">
+                                    <option value="">Select Basement Type</option>
+                                    @foreach (var basement in PropertyEnums.BasementTypes)
+                                    {
+                                        <option value="@basement.Key">@basement.Value</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => quoteRequest.PropertyDetails.Basement" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="foundationType" class="form-label">Foundation Type:</label>
+                                <InputSelect id="foundationType" @bind-Value="quoteRequest.PropertyDetails.FoundationType" class="form-select">
+                                    <option value="">Select Foundation Type</option>
+                                    @foreach (var foundation in PropertyEnums.FoundationTypes)
+                                    {
+                                        <option value="@foundation.Key">@foundation.Value</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => quoteRequest.PropertyDetails.FoundationType" class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coverage Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Coverage Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="buildingCoverage" class="form-label">Building Coverage ($):</label>
+                                <InputNumber id="buildingCoverage" @bind-Value="quoteRequest.Coverage.BuildingCoverage" class="form-control" />
+                                <ValidationMessage For="() => quoteRequest.Coverage.BuildingCoverage" class="text-danger" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="contentsCoverage" class="form-label">Contents Coverage ($):</label>
+                                <InputNumber id="contentsCoverage" @bind-Value="quoteRequest.Coverage.ContentsCoverage" class="form-control" />
+                                <ValidationMessage For="() => quoteRequest.Coverage.ContentsCoverage" class="text-danger" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="deductible" class="form-label">Deductible:</label>
+                                <InputSelect id="deductible" @bind-Value="quoteRequest.Coverage.Deductible" class="form-select">
+                                    <option value="0">Select Deductible</option>
+                                    @foreach (var deductible in PropertyEnums.Deductibles)
+                                    {
+                                        <option value="@deductible.Key">@deductible.Value</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => quoteRequest.Coverage.Deductible" class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-secondary me-2" @onclick="LoadDummyData">Load Dummy Data</button>
+                        <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                                <span>Getting Quote...</span>
+                            }
+                            else
+                            {
+                                <span>Submit Quote Request</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        }
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Information</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    <strong>Flood Insurance Quote</strong><br />
+                    Get a quick quote for residential flood insurance coverage. Fill out all the required fields and click "Submit Quote Request" to get your personalized quote.
+                </p>
+                <p class="card-text">
+                    <strong>Need help?</strong><br />
+                    Use the "Load Dummy Data" button to fill the form with sample values for testing purposes.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ResidentialQuoteRequest quoteRequest = new();
+    private QuoteResponse? quoteResponse;
+    private string errorMessage = string.Empty;
+    private bool isSubmitting = false;
+
+    private async Task SubmitQuote()
+    {
+        errorMessage = string.Empty;
+        isSubmitting = true;
+
+        try
+        {
+            quoteResponse = await MyFloodService.GetResidentialQuoteAsync(quoteRequest);
+        }
+        catch (MyFloodApiException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An unexpected error occurred. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void LoadDummyData()
+    {
+        quoteRequest = new ResidentialQuoteRequest
+        {
+            Location = new Location
+            {
+                Address = "123 Main Street",
+                City = "Miami",
+                State = "FL",
+                ZipCode = "33101",
+                FloodZone = "AE"
+            },
+            PropertyDetails = new PropertyDetails
+            {
+                PropertyType = "SingleFamily",
+                ConstructionType = "Frame",
+                YearBuilt = 2010,
+                SquareFootage = 2500,
+                NumberOfFloors = 2,
+                Basement = "None",
+                FoundationType = "Slab"
+            },
+            Coverage = new Coverage
+            {
+                BuildingCoverage = 250000,
+                ContentsCoverage = 100000,
+                Deductible = 1000
+            }
+        };
+
+        errorMessage = string.Empty;
+        quoteResponse = null;
+    }
+
+    private void ResetForm()
+    {
+        quoteRequest = new ResidentialQuoteRequest();
+        quoteResponse = null;
+        errorMessage = string.Empty;
+    }
+}

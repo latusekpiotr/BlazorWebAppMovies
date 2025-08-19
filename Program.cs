@@ -3,6 +3,7 @@ using BlazorWebAppMovies.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using BlazorWebAppMovies.Data;
+using BlazorWebAppMovies.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextFactory<BlazorWebAppMoviesContext>(options =>
@@ -11,6 +12,11 @@ builder.Services.AddDbContextFactory<BlazorWebAppMoviesContext>(options =>
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+// Configure MyFlood API
+builder.Services.Configure<MyFloodOptions>(
+    builder.Configuration.GetSection("MyFlood"));
+builder.Services.AddHttpClient<MyFloodApiService>();
 
 // Register HttpClient and weather services
 builder.Services.AddHttpClient<OpenMeteoService>();
