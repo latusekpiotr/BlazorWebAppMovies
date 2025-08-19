@@ -4,58 +4,118 @@
 @inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Edit</PageTitle>
+<PageTitle>Edit Movie</PageTitle>
 
-<h1>Edit</h1>
+<div class="edit-header">
+    <h1 class="display-5 text-primary mb-2">✏️ Edit Movie</h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/movies" class="text-decoration-none">Movies</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit</li>
+        </ol>
+    </nav>
+</div>
 
-<h2>Movie</h2>
-<hr />
 @if (Movie is null)
 {
-    <p><em>Loading...</em></p>
+    <div class="loading-container">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-muted">Loading movie data...</p>
+    </div>
 }
 else
 {
-    <div class="row">
-        <div class="col-md-4">
-            <EditForm method="post" Model="Movie" OnValidSubmit="UpdateMovie" FormName="edit" Enhance>
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-                <input type="hidden" name="Movie.Id" value="@Movie.Id" />
-                <div class="mb-3">
-                    <label for="title" class="form-label">Title:</label>
-                    <InputText id="title" @bind-Value="Movie.Title" class="form-control" />
-                    <ValidationMessage For="() => Movie.Title" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="releasedate" class="form-label">Release Date:</label>
-                    <InputDate id="releasedate" @bind-Value="Movie.ReleaseDate" class="form-control" />
-                    <ValidationMessage For="() => Movie.ReleaseDate" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="genre" class="form-label">Genre:</label>
-                    <InputText id="genre" @bind-Value="Movie.Genre" class="form-control" />
-                    <ValidationMessage For="() => Movie.Genre" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="price" class="form-label">Price:</label>
-                    <InputNumber id="price" @bind-Value="Movie.Price" class="form-control" />
-                    <ValidationMessage For="() => Movie.Price" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="rating" class="form-label">Rating:</label>
-                    <InputText id="rating" @bind-Value="Movie.Rating" class="form-control" />
-                    <ValidationMessage For="() => Movie.Rating" class="text-danger" />
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
-            </EditForm>
+    <div class="edit-container">
+        <div class="edit-card">
+            <div class="card-header">
+                <h2 class="form-title">Edit: @Movie.Title</h2>
+            </div>
+            <div class="card-body">
+                <EditForm method="post" Model="Movie" OnValidSubmit="UpdateMovie" FormName="edit" Enhance>
+                    <DataAnnotationsValidator />
+                    
+                    @if (Context.GetValidationMessages().Any())
+                    {
+                        <div class="alert alert-danger validation-summary" role="alert">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:</h6>
+                            <ValidationSummary />
+                        </div>
+                    }
+                    
+                    <input type="hidden" name="Movie.Id" value="@Movie.Id" />
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="title" class="form-label">
+                                    <i class="fas fa-film me-2"></i>Title
+                                </label>
+                                <InputText id="title" @bind-Value="Movie.Title" class="form-control modern-input" placeholder="Enter movie title" />
+                                <ValidationMessage For="() => Movie.Title" class="text-danger validation-message" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="releasedate" class="form-label">
+                                    <i class="fas fa-calendar-alt me-2"></i>Release Date
+                                </label>
+                                <InputDate id="releasedate" @bind-Value="Movie.ReleaseDate" class="form-control modern-input" />
+                                <ValidationMessage For="() => Movie.ReleaseDate" class="text-danger validation-message" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="genre" class="form-label">
+                                    <i class="fas fa-theater-masks me-2"></i>Genre
+                                </label>
+                                <InputText id="genre" @bind-Value="Movie.Genre" class="form-control modern-input" placeholder="Enter movie genre" />
+                                <ValidationMessage For="() => Movie.Genre" class="text-danger validation-message" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="price" class="form-label">
+                                    <i class="fas fa-dollar-sign me-2"></i>Price
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber id="price" @bind-Value="Movie.Price" class="form-control modern-input" placeholder="0.00" step="0.01" />
+                                </div>
+                                <ValidationMessage For="() => Movie.Price" class="text-danger validation-message" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="rating" class="form-label">
+                                    <i class="fas fa-star me-2"></i>Rating
+                                </label>
+                                <InputText id="rating" @bind-Value="Movie.Rating" class="form-control modern-input" placeholder="Enter movie rating" />
+                                <ValidationMessage For="() => Movie.Rating" class="text-danger validation-message" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                        <a href="/movies" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </EditForm>
+            </div>
         </div>
     </div>
 }
-
-<div>
-    <a href="/movies">Back to List</a>
-</div>
 
 @code {
     [SupplyParameterFromQuery]
