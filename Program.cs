@@ -3,7 +3,6 @@ using BlazorWebAppMovies.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using BlazorWebAppMovies.Data;
-using BlazorWebAppMovies.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextFactory<BlazorWebAppMoviesContext>(options =>
