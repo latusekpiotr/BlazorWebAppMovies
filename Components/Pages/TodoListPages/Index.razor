@@ -1,0 +1,55 @@
+@page "/todolists"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using BlazorWebAppMovies.Models
+@using BlazorWebAppMovies.Data
+@inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
+@implements IAsyncDisposable
+
+<PageTitle>Todo Lists</PageTitle>
+
+<h1>Todo Lists</h1>
+
+<p>
+    <input type="search" @bind="nameFilter" @bind:event="oninput" placeholder="Search todo lists..." />
+</p>
+
+<p>
+    <a href="todolists/create">Create New</a>
+</p>
+
+<div>
+    <QuickGrid Class="table" Items="FilteredTodoLists" Pagination="pagination">
+        <PropertyColumn Property="todoList => todoList.Name" Sortable="true" />
+        <PropertyColumn Property="todoList => todoList.Items.Count" Title="Total Items" />
+        <PropertyColumn Property="todoList => todoList.Items.Count(i => i.IsCompleted)" Title="Completed" />
+        <PropertyColumn Property="todoList => todoList.Items.Count(i => !i.IsCompleted)" Title="Remaining" />
+
+        <TemplateColumn Context="todoList">
+            <a href="@($"todolists/edit?id={todoList.Id}")">Edit</a> |
+            <a href="@($"todolists/details?id={todoList.Id}")">Details</a> |
+            <a href="@($"todolists/delete?id={todoList.Id}")">Delete</a>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+<Paginator State="pagination" />
+
+@code {
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+    private string nameFilter = string.Empty;
+    private BlazorWebAppMoviesContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    private IQueryable<TodoList> FilteredTodoLists => 
+        context.TodoList
+            .Include(tl => tl.Items)
+            .Where(tl => tl.Name!.Contains(nameFilter));
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

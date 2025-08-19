@@ -64,6 +64,32 @@ public class SeedData
                 Rating = "R",
             });
 
+        // Add sample todo lists and items
+        var groceryList = new TodoList { Name = "Grocery Shopping" };
+        var workList = new TodoList { Name = "Work Tasks" };
+        var homeList = new TodoList { Name = "Home Improvements" };
+
+        context.TodoList.AddRange(groceryList, workList, homeList);
+        context.SaveChanges(); // Save to get the IDs
+
+        context.TodoItem.AddRange(
+            // Grocery Shopping items
+            new TodoItem { Name = "Buy milk", IsCompleted = false, TodoListId = groceryList.Id },
+            new TodoItem { Name = "Get bread", IsCompleted = true, TodoListId = groceryList.Id },
+            new TodoItem { Name = "Pick up vegetables", IsCompleted = false, TodoListId = groceryList.Id },
+            new TodoItem { Name = "Buy coffee", IsCompleted = false, TodoListId = groceryList.Id },
+
+            // Work Tasks items
+            new TodoItem { Name = "Complete project proposal", IsCompleted = true, TodoListId = workList.Id },
+            new TodoItem { Name = "Review code changes", IsCompleted = false, TodoListId = workList.Id },
+            new TodoItem { Name = "Attend team meeting", IsCompleted = false, TodoListId = workList.Id },
+
+            // Home Improvements items
+            new TodoItem { Name = "Fix leaky faucet", IsCompleted = false, TodoListId = homeList.Id },
+            new TodoItem { Name = "Paint bedroom", IsCompleted = false, TodoListId = homeList.Id },
+            new TodoItem { Name = "Clean garage", IsCompleted = true, TodoListId = homeList.Id }
+        );
+
         context.SaveChanges();
     }
 }
