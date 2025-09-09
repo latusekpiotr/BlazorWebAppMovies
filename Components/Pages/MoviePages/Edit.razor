@@ -4,57 +4,93 @@
 @inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Edit</PageTitle>
+<PageTitle>Edit Movie</PageTitle>
 
-<h1>Edit</h1>
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">✏️ Edit Movie</h1>
+        <p class="page-subtitle">Update movie information</p>
+    </div>
+</div>
 
-<h2>Movie</h2>
-<hr />
-@if (Movie is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-4">
+<div class="container">
+    @if (Movie is null)
+    {
+        <div class="form-container">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <span>Loading movie details...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="form-container">
+            <div class="form-header">
+                <h2 class="form-title">
+                    🎬 @Movie.Title
+                </h2>
+            </div>
+            
             <EditForm method="post" Model="Movie" OnValidSubmit="UpdateMovie" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
-                <ValidationSummary />
-                <input type="hidden" name="Movie.Id" value="@Movie.Id" />
-                <div class="mb-3">
-                    <label for="title" class="form-label">Title:</label>
-                    <InputText id="title" @bind-Value="Movie.Title" class="form-control" />
-                    <ValidationMessage For="() => Movie.Title" class="text-danger" />
+                
+                @if (Context?.GetValidationMessages().Any() == true)
+                {
+                    <div class="form-body">
+                        <div class="validation-summary">
+                            <ValidationSummary />
+                        </div>
+                    </div>
+                }
+                
+                <div class="form-body">
+                    <input type="hidden" name="Movie.Id" value="@Movie.Id" />
+                    
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label for="title" class="form-label">🎬 Movie Title</label>
+                            <InputText id="title" @bind-Value="Movie.Title" class="form-control" placeholder="Enter movie title..." />
+                            <ValidationMessage For="() => Movie.Title" class="text-danger" />
+                        </div>
+                        
+                        <div class="form-field">
+                            <label for="releasedate" class="form-label">📅 Release Date</label>
+                            <InputDate id="releasedate" @bind-Value="Movie.ReleaseDate" class="form-control" />
+                            <ValidationMessage For="() => Movie.ReleaseDate" class="text-danger" />
+                        </div>
+                        
+                        <div class="form-field">
+                            <label for="genre" class="form-label">🎭 Genre</label>
+                            <InputText id="genre" @bind-Value="Movie.Genre" class="form-control" placeholder="e.g., Action, Comedy, Drama..." />
+                            <ValidationMessage For="() => Movie.Genre" class="text-danger" />
+                        </div>
+                        
+                        <div class="form-field">
+                            <label for="price" class="form-label">💰 Price</label>
+                            <InputNumber id="price" @bind-Value="Movie.Price" class="form-control" placeholder="0.00" />
+                            <ValidationMessage For="() => Movie.Price" class="text-danger" />
+                        </div>
+                        
+                        <div class="form-field">
+                            <label for="rating" class="form-label">⭐ Rating</label>
+                            <InputText id="rating" @bind-Value="Movie.Rating" class="form-control" placeholder="G, PG, PG-13, R, NC-17" />
+                            <ValidationMessage For="() => Movie.Rating" class="text-danger" />
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="releasedate" class="form-label">Release Date:</label>
-                    <InputDate id="releasedate" @bind-Value="Movie.ReleaseDate" class="form-control" />
-                    <ValidationMessage For="() => Movie.ReleaseDate" class="text-danger" />
+                
+                <div class="form-actions">
+                    <a href="/movies" class="btn-secondary">
+                        ← Cancel
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        💾 Save Changes
+                    </button>
                 </div>
-                <div class="mb-3">
-                    <label for="genre" class="form-label">Genre:</label>
-                    <InputText id="genre" @bind-Value="Movie.Genre" class="form-control" />
-                    <ValidationMessage For="() => Movie.Genre" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="price" class="form-label">Price:</label>
-                    <InputNumber id="price" @bind-Value="Movie.Price" class="form-control" />
-                    <ValidationMessage For="() => Movie.Price" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="rating" class="form-label">Rating:</label>
-                    <InputText id="rating" @bind-Value="Movie.Rating" class="form-control" />
-                    <ValidationMessage For="() => Movie.Rating" class="text-danger" />
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
         </div>
-    </div>
-}
-
-<div>
-    <a href="/movies">Back to List</a>
+    }
 </div>
 
 @code {
