@@ -1,15 +1,22 @@
 ﻿@page "/weather"
 @attribute [StreamRendering]
+@using BlazorWebAppMovies.Services
+@using BlazorWebAppMovies.Models
+@inject IWeatherService WeatherService
 
 <PageTitle>Weather</PageTitle>
 
-<h1>Weather</h1>
+<h1>Weather - London, UK</h1>
 
-<p>This component demonstrates showing data.</p>
+<p>Real-time weather data from Open-Meteo API.</p>
 
 @if (forecasts == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Loading weather data...</em></p>
+}
+else if (forecasts.Length == 0)
+{
+    <p><em>No weather data available.</em></p>
 }
 else
 {
@@ -27,8 +34,8 @@ else
             {
                 <tr>
                     <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.TemperatureC°</td>
+                    <td>@forecast.TemperatureF°</td>
                     <td>@forecast.Summary</td>
                 </tr>
             }
@@ -41,24 +48,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // Simulate asynchronous loading to demonstrate streaming rendering
-        await Task.Delay(500);
-
-        var startDate = DateOnly.FromDateTime(DateTime.Now);
-        var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-        forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+        try
         {
-            Date = startDate.AddDays(index),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = summaries[Random.Shared.Next(summaries.Length)]
-        }).ToArray();
-    }
-
-    private class WeatherForecast
-    {
-        public DateOnly Date { get; set; }
-        public int TemperatureC { get; set; }
-        public string? Summary { get; set; }
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+            forecasts = await WeatherService.GetWeatherForecastAsync();
+        }
+        catch (Exception)
+        {
+            forecasts = Array.Empty<WeatherForecast>();
+        }
     }
 }
