@@ -19,6 +19,9 @@ builder.Services.AddHttpClient<IWeatherService, WeatherService>();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Add HttpClient and MyFlood service
+builder.Services.AddHttpClient<IMyFloodService, MyFloodService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

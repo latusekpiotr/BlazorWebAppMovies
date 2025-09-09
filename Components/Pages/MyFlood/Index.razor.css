@@ -1,0 +1,50 @@
+.card {
+    margin-bottom: 1.5rem;
+}
+
+.card-header h4 {
+    margin-bottom: 0;
+    color: #495057;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.alert-success h6,
+.alert-danger h6,
+.alert-info h6 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.table-sm th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+@media (max-width: 768px) {
+    .container-fluid .row {
+        flex-direction: column;
+    }
+    
+    .col-md-4 {
+        margin-top: 2rem;
+    }
+}
