@@ -1,0 +1,434 @@
+@page "/myflood"
+@rendermode InteractiveServer
+@using BlazorWebAppMovies.Models.MyFlood
+@using BlazorWebAppMovies.Services
+@using System.ComponentModel.DataAnnotations
+@inject IMyFloodService MyFloodService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>MyFlood Quote</PageTitle>
+
+<h1>MyFlood Residential Quote Request</h1>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <EditForm Model="@quoteRequest" OnValidSubmit="@HandleValidSubmit" FormName="MyFloodQuoteForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="alert alert-danger" />
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> @errorMessage
+                    </div>
+                }
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Property Location</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="addressLine1" class="form-label">Address Line 1 *</label>
+                                    <InputText id="addressLine1" class="form-control" @bind-Value="quoteRequest.Location!.AddressLine1" />
+                                    <ValidationMessage For="@(() => quoteRequest.Location!.AddressLine1)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="addressLine2" class="form-label">Address Line 2</label>
+                                    <InputText id="addressLine2" class="form-control" @bind-Value="quoteRequest.Location!.AddressLine2" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="stateCode" class="form-label">State Code *</label>
+                                    <InputText id="stateCode" class="form-control" @bind-Value="quoteRequest.Location!.StateCode" maxlength="2" />
+                                    <ValidationMessage For="@(() => quoteRequest.Location!.StateCode)" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="zip" class="form-label">ZIP Code *</label>
+                                    <InputText id="zip" class="form-control" @bind-Value="quoteRequest.Location!.Zip" />
+                                    <ValidationMessage For="@(() => quoteRequest.Location!.Zip)" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="county" class="form-label">County</label>
+                                    <InputText id="county" class="form-control" @bind-Value="quoteRequest.Location!.County" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Property Details</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="yearBuilt" class="form-label">Year Built *</label>
+                                    <InputNumber id="yearBuilt" class="form-control" @bind-Value="quoteRequest.YearBuilt" />
+                                    <ValidationMessage For="@(() => quoteRequest.YearBuilt)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="squareFootage" class="form-label">Square Footage *</label>
+                                    <InputNumber id="squareFootage" class="form-control" @bind-Value="quoteRequest.SquareFootage" />
+                                    <ValidationMessage For="@(() => quoteRequest.SquareFootage)" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="numberOfStories" class="form-label">Number of Stories *</label>
+                                    <InputNumber id="numberOfStories" class="form-control" @bind-Value="quoteRequest.NumberOfStories" />
+                                    <ValidationMessage For="@(() => quoteRequest.NumberOfStories)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="elevationHeight" class="form-label">Elevation Height (feet)</label>
+                                    <InputNumber id="elevationHeight" class="form-control" @bind-Value="quoteRequest.ElevationHeight" />
+                                    <ValidationMessage For="@(() => quoteRequest.ElevationHeight)" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Residential Property Information</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="occupancyType" class="form-label">Occupancy Type *</label>
+                                    <InputSelect id="occupancyType" class="form-select" @bind-Value="quoteRequest.Residential!.OccupancyType">
+                                        @foreach (var item in Enum.GetValues<ResidentialOccupancyType>())
+                                        {
+                                            <option value="@item">@GetDisplayName(item)</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => quoteRequest.Residential!.OccupancyType)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="constructionType" class="form-label">Construction Type *</label>
+                                    <InputSelect id="constructionType" class="form-select" @bind-Value="quoteRequest.Residential!.ConstructionType">
+                                        @foreach (var item in Enum.GetValues<ResidentialConstructionType>())
+                                        {
+                                            <option value="@item">@GetDisplayName(item)</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => quoteRequest.Residential!.ConstructionType)" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="attachedGarageType" class="form-label">Attached Garage Type *</label>
+                                    <InputSelect id="attachedGarageType" class="form-select" @bind-Value="quoteRequest.Residential!.AttachedGarageType">
+                                        @foreach (var item in Enum.GetValues<AttachedGarageType>())
+                                        {
+                                            <option value="@item">@GetDisplayName(item)</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => quoteRequest.Residential!.AttachedGarageType)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="basementType" class="form-label">Basement Type *</label>
+                                    <InputSelect id="basementType" class="form-select" @bind-Value="quoteRequest.BasementType">
+                                        @foreach (var item in Enum.GetValues<BasementType>())
+                                        {
+                                            <option value="@item">@GetDisplayName(item)</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => quoteRequest.BasementType)" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Foundation & Building Information</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="foundationType" class="form-label">Foundation Type *</label>
+                                    <InputSelect id="foundationType" class="form-select" @bind-Value="quoteRequest.Foundation!.FoundationType">
+                                        @foreach (var item in Enum.GetValues<FoundationType>())
+                                        {
+                                            <option value="@item">@GetDisplayName(item)</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => quoteRequest.Foundation!.FoundationType)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="additionalFoundationType" class="form-label">Additional Foundation Type</label>
+                                    <InputSelect id="additionalFoundationType" class="form-select" @bind-Value="quoteRequest.Foundation!.AdditionalFoundationType">
+                                        <option value="">-- Select Optional --</option>
+                                        @foreach (var item in Enum.GetValues<AdditionalFoundationType>())
+                                        {
+                                            <option value="@item">@GetDisplayName(item)</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="buildingOverWaterType" class="form-label">Building Over Water *</label>
+                                    <InputSelect id="buildingOverWaterType" class="form-select" @bind-Value="quoteRequest.BuildingOverWaterType">
+                                        @foreach (var item in Enum.GetValues<BuildingOverWaterType>())
+                                        {
+                                            <option value="@item">@GetDisplayName(item)</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => quoteRequest.BuildingOverWaterType)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="contentsCostValueType" class="form-label">Contents Cost Value Type *</label>
+                                    <InputSelect id="contentsCostValueType" class="form-select" @bind-Value="quoteRequest.ContentsCostValueType">
+                                        @foreach (var item in Enum.GetValues<ContentsCostValueType>())
+                                        {
+                                            <option value="@item">@GetDisplayName(item)</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => quoteRequest.ContentsCostValueType)" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <button type="button" class="btn btn-secondary me-2" @onclick="LoadDummyData">Load Dummy Data</button>
+                    <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span>Submitting...</span>
+                        }
+                        else
+                        {
+                            <span>Submit Quote Request</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+
+        <div class="col-md-4">
+            @if (quoteResponse != null)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Quote Results</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (quoteResponse.Messages?.Validation?.Any() == true)
+                        {
+                            <div class="alert alert-danger">
+                                <h6>Validation Errors:</h6>
+                                <ul class="mb-0">
+                                    @foreach (var error in quoteResponse.Messages.Validation)
+                                    {
+                                        <li>@error</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        @if (quoteResponse.Response?.Residential != null)
+                        {
+                            <div class="alert alert-success">
+                                <h6>Quote Successfully Generated!</h6>
+                                
+                                <div class="mt-3">
+                                    <strong>Quote Details:</strong><br>
+                                    Company ID: @quoteResponse.Response.RedactedCompanyId<br>
+                                    Request Date: @quoteResponse.Response.QuoteRequestDate<br>
+                                    Expiry Date: @quoteResponse.Response.QuoteExpiryDate
+                                </div>
+
+                                <div class="mt-3">
+                                    <strong>Premium Information:</strong><br>
+                                    Building Premium: @FormatCurrency(quoteResponse.Response.Residential.BuildingPremium)<br>
+                                    Contents Premium: @FormatCurrency(quoteResponse.Response.Residential.ContentsPremium)<br>
+                                    <strong>Total Premium: @FormatCurrency(quoteResponse.Response.Residential.TotalPremium)</strong>
+                                </div>
+
+                                @if (quoteResponse.Response.Residential.Deductibles?.Any() == true)
+                                {
+                                    <div class="mt-3">
+                                        <strong>Available Deductibles:</strong>
+                                        <table class="table table-sm mt-2">
+                                            <thead>
+                                                <tr>
+                                                    <th>Deductible</th>
+                                                    <th>Building</th>
+                                                    <th>Contents</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var deductible in quoteResponse.Response.Residential.Deductibles)
+                                                {
+                                                    <tr>
+                                                        <td>@FormatCurrency(deductible.Deductible)</td>
+                                                        <td>@FormatCurrency(deductible.BuildingPremium)</td>
+                                                        <td>@FormatCurrency(deductible.ContentsPremium)</td>
+                                                        <td>@FormatCurrency(deductible.TotalPremium)</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (quoteResponse.Messages?.UnderwriterDecisions?.Any() == true)
+                        {
+                            <div class="alert alert-info">
+                                <h6>Underwriter Decisions:</h6>
+                                <ul class="mb-0">
+                                    @foreach (var decision in quoteResponse.Messages.UnderwriterDecisions)
+                                    {
+                                        <li>@decision</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private NewQuoteRequest quoteRequest = new();
+    private QuoteResponseMessage? quoteResponse;
+    private string? errorMessage;
+    private bool isSubmitting = false;
+
+    protected override void OnInitialized()
+    {
+        quoteRequest = new NewQuoteRequest();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+            quoteResponse = null;
+            StateHasChanged();
+
+            quoteResponse = await MyFloodService.GetQuoteAsync(quoteRequest);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void LoadDummyData()
+    {
+        quoteRequest = new NewQuoteRequest
+        {
+            Location = new LocationDetail
+            {
+                AddressLine1 = "123 Main Street",
+                AddressLine2 = "Apt 1A",
+                StateCode = "FL",
+                Zip = "33101",
+                County = "Miami-Dade",
+                Latitude = 25.7617,
+                Longitude = -80.1918
+            },
+            YearBuilt = 2010,
+            SquareFootage = 1500,
+            NumberOfStories = 2,
+            ElevationHeight = 8.5,
+            ContentsCostValueType = ContentsCostValueType.ReplacementCostValue,
+            BasementType = BasementType.None,
+            BuildingOverWaterType = BuildingOverWaterType.No,
+            Residential = new Residential
+            {
+                OccupancyType = ResidentialOccupancyType.Primary,
+                ConstructionType = ResidentialConstructionType.Frame,
+                AttachedGarageType = AttachedGarageType.Finished
+            },
+            Foundation = new Foundation
+            {
+                FoundationType = FoundationType.SlabOnGrade,
+                AdditionalFoundationType = AdditionalFoundationType.None
+            }
+        };
+
+        errorMessage = null;
+        quoteResponse = null;
+        StateHasChanged();
+    }
+
+    private string GetDisplayName(Enum enumValue)
+    {
+        var type = enumValue.GetType();
+        var name = Enum.GetName(type, enumValue);
+        
+        if (name == null) return enumValue.ToString();
+
+        var field = type.GetField(name);
+        var displayAttribute = field?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                                    .Cast<DisplayAttribute>()
+                                    .FirstOrDefault();
+
+        return displayAttribute?.Name ?? name;
+    }
+
+    private string FormatCurrency(double? amount)
+    {
+        return amount?.ToString("C") ?? "N/A";
+    }
+
+    private string FormatCurrency(int amount)
+    {
+        return amount.ToString("C");
+    }
+}
