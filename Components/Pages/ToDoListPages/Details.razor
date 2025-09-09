@@ -1,0 +1,195 @@
+@page "/todolists/details"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using BlazorWebAppMovies.Models
+@inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+<PageTitle>To-Do List Details</PageTitle>
+
+@if (toDoList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>@toDoList.Name</h1>
+    <p class="text-muted">Created: @toDoList.CreatedDate.ToString("MMM dd, yyyy")</p>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <h3>Items (@toDoList.Items.Count)</h3>
+            
+            <!-- Add new item form -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <EditForm Model="newItem" OnValidSubmit="AddItem" FormName="addItem">
+                        <DataAnnotationsValidator />
+                        <div class="input-group">
+                            <InputText @bind-Value="newItem.Name" class="form-control" placeholder="Add new item..." />
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </div>
+                        <ValidationMessage For="() => newItem.Name" class="text-danger" />
+                    </EditForm>
+                </div>
+            </div>
+
+            <!-- Items list -->
+            @if (toDoList.Items.Any())
+            {
+                <div class="list-group">
+                    @foreach (var item in toDoList.Items.OrderBy(i => i.IsCompleted).ThenByDescending(i => i.CreatedDate))
+                    {
+                        <div class="list-group-item d-flex justify-content-between align-items-center @(item.IsCompleted ? "list-group-item-success" : "")">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@item.IsCompleted" 
+                                       @onchange="@(async () => await ToggleItemCompletion(item))" />
+                                <label class="form-check-label @(item.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                                    @item.Name
+                                </label>
+                            </div>
+                            <div>
+                                @if (!item.IsCompleted)
+                                {
+                                    <button class="btn btn-outline-secondary btn-sm me-1" @onclick="@(() => StartEditItem(item))">
+                                        Edit
+                                    </button>
+                                }
+                                <button class="btn btn-outline-danger btn-sm" @onclick="@(async () => await DeleteItem(item))">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                        
+                        @if (editingItem?.Id == item.Id)
+                        {
+                            <div class="list-group-item">
+                                <EditForm Model="editingItem" OnValidSubmit="SaveEditItem" FormName="editItem">
+                                    <DataAnnotationsValidator />
+                                    <div class="input-group">
+                                        <InputText @bind-Value="editingItem.Name" class="form-control" />
+                                        <button type="submit" class="btn btn-success">Save</button>
+                                        <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                                    </div>
+                                    <ValidationMessage For="() => editingItem.Name" class="text-danger" />
+                                </EditForm>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    No items in this list yet. Add some items above!
+                </div>
+            }
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Summary</h5>
+                    <p class="card-text">
+                        <strong>Total items:</strong> @toDoList.Items.Count<br>
+                        <strong>Completed:</strong> @toDoList.Items.Count(i => i.IsCompleted)<br>
+                        <strong>Remaining:</strong> @toDoList.Items.Count(i => !i.IsCompleted)
+                    </p>
+                    @if (toDoList.Items.Any())
+                    {
+                        var completionPercentage = (int)((double)toDoList.Items.Count(i => i.IsCompleted) / toDoList.Items.Count * 100);
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: @(completionPercentage)%" 
+                                 aria-valuenow="@completionPercentage" aria-valuemin="0" aria-valuemax="100">
+                                @completionPercentage%
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="@($"/todolists/edit?id={toDoList.Id}")" class="btn btn-outline-secondary">Edit List Name</a>
+        <a href="/todolists" class="btn btn-outline-primary">Back to Lists</a>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    private BlazorWebAppMoviesContext context = default!;
+    private ToDoList? toDoList;
+    private ToDoItem newItem = new();
+    private ToDoItem? editingItem;
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = DbFactory.CreateDbContext();
+        toDoList = await context.ToDoList
+            .Include(l => l.Items)
+            .FirstOrDefaultAsync(l => l.Id == Id);
+    }
+
+    private async Task AddItem()
+    {
+        if (toDoList == null || string.IsNullOrWhiteSpace(newItem.Name)) return;
+
+        newItem.ToDoListId = toDoList.Id;
+        newItem.CreatedDate = DateTime.Now;
+        
+        context.ToDoItem.Add(newItem);
+        await context.SaveChangesAsync();
+        
+        toDoList.Items.Add(newItem);
+        newItem = new();
+        StateHasChanged();
+    }
+
+    private async Task ToggleItemCompletion(ToDoItem item)
+    {
+        item.IsCompleted = !item.IsCompleted;
+        context.ToDoItem.Update(item);
+        await context.SaveChangesAsync();
+        StateHasChanged();
+    }
+
+    private async Task DeleteItem(ToDoItem item)
+    {
+        context.ToDoItem.Remove(item);
+        await context.SaveChangesAsync();
+        toDoList?.Items.Remove(item);
+        StateHasChanged();
+    }
+
+    private void StartEditItem(ToDoItem item)
+    {
+        editingItem = new ToDoItem { Id = item.Id, Name = item.Name, IsCompleted = item.IsCompleted, ToDoListId = item.ToDoListId };
+    }
+
+    private async Task SaveEditItem()
+    {
+        if (editingItem == null || toDoList == null) return;
+
+        var originalItem = toDoList.Items.FirstOrDefault(i => i.Id == editingItem.Id);
+        if (originalItem != null)
+        {
+            originalItem.Name = editingItem.Name;
+            context.ToDoItem.Update(originalItem);
+            await context.SaveChangesAsync();
+        }
+        
+        editingItem = null;
+        StateHasChanged();
+    }
+
+    private void CancelEdit()
+    {
+        editingItem = null;
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}
