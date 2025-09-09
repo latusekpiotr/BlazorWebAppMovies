@@ -1,0 +1,27 @@
+.list-group-item {
+    border-left: 4px solid transparent;
+}
+
+.list-group-item:hover {
+    border-left-color: #007bff;
+}
+
+.list-group-item-success {
+    border-left-color: #28a745;
+}
+
+.completed-item {
+    opacity: 0.7;
+}
+
+.progress {
+    height: 8px;
+}
+
+.todo-summary .card-body {
+    padding: 1rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
