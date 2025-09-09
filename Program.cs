@@ -2,6 +2,7 @@ using BlazorWebAppMovies.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using BlazorWebAppMovies.Data;
+using BlazorWebAppMovies.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextFactory<BlazorWebAppMoviesContext>(options =>
@@ -10,6 +11,9 @@ builder.Services.AddDbContextFactory<BlazorWebAppMoviesContext>(options =>
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+// Add HttpClient and Weather Service
+builder.Services.AddHttpClient<IWeatherService, WeatherService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
