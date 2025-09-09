@@ -32,7 +32,7 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Restore .NET dependencies
-      run: dotnet restore BlazorWebAppMovies.sln
+      run: dotnet restore BlazorWebAppMovies.sln --configfile nuget.config
 
     - name: Build
       run: dotnet build BlazorWebAppMovies.sln --configuration Release --no-restore
