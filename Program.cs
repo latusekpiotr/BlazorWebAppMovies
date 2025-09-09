@@ -12,6 +12,9 @@ builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+// Add HttpClient and Weather Service
+builder.Services.AddHttpClient<IWeatherService, WeatherService>();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

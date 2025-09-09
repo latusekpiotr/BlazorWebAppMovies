@@ -1,0 +1,93 @@
+@page "/todolists/edit"
+@using Microsoft.EntityFrameworkCore
+@using BlazorWebAppMovies.Models
+@inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit To-Do List</PageTitle>
+
+@if (ToDoList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>Edit</h1>
+
+    <h2>To-Do List</h2>
+    <hr />
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="ToDoList" OnValidSubmit="UpdateToDoList" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+                <input type="hidden" name="ToDoList.Id" value="@ToDoList.Id" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label> 
+                    <InputText id="name" @bind-Value="ToDoList.Name" class="form-control" /> 
+                    <ValidationMessage For="() => ToDoList.Name" class="text-danger" /> 
+                </div>        
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+
+    <div>
+        <a href="@($"/todolists/details?id={ToDoList.Id}")">Back to Details</a> |
+        <a href="/todolists">Back to List</a>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private ToDoList? ToDoList { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ToDoList is not null)
+        {
+            return;
+        }
+
+        using var context = DbFactory.CreateDbContext();
+        ToDoList = await context.ToDoList.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (ToDoList is null)
+        {
+            NavigationManager.NavigateTo("/todolists");
+        }
+    }
+
+    private async Task UpdateToDoList()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(ToDoList!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ToDoListExists(ToDoList!.Id))
+            {
+                NavigationManager.NavigateTo("/todolists");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo($"/todolists/details?id={ToDoList!.Id}");
+    }
+
+    private bool ToDoListExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.ToDoList.Any(e => e.Id == id);
+    }
+}
