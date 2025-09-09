@@ -1,0 +1,61 @@
+@page "/todolists"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using BlazorWebAppMovies.Models
+@using BlazorWebAppMovies.Data
+@inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
+@implements IAsyncDisposable
+
+<PageTitle>To-Do Lists</PageTitle>
+
+<h1>To-Do Lists</h1>
+
+<p>
+    <input type="search" @bind="nameFilter" @bind:event="oninput" placeholder="Search lists..." />
+</p>
+
+<p>
+    <a href="todolists/create" class="btn btn-primary">Create New List</a>
+</p>
+
+<div>
+    <QuickGrid Class="table" Items="FilteredLists" Pagination="pagination">
+        <PropertyColumn Property="list => list.Name" Sortable="true" />
+        <PropertyColumn Property="list => list.CreatedDate" Title="Created" Format="MMM dd, yyyy" />
+        <TemplateColumn Title="Items">
+            <span class="badge bg-secondary">@context.Items.Count</span>
+            @if (context.Items.Any(i => i.IsCompleted))
+            {
+                <span class="badge bg-success ms-1">@context.Items.Count(i => i.IsCompleted) completed</span>
+            }
+        </TemplateColumn>
+
+        <TemplateColumn Context="list">
+            <a href="@($"todolists/details?id={list.Id}")" class="btn btn-outline-primary btn-sm">View</a>
+            <a href="@($"todolists/edit?id={list.Id}")" class="btn btn-outline-secondary btn-sm">Edit</a>
+            <a href="@($"todolists/delete?id={list.Id}")" class="btn btn-outline-danger btn-sm">Delete</a>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+<Paginator State="pagination" />
+
+@code {
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private string nameFilter = string.Empty;
+    private BlazorWebAppMoviesContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    private IQueryable<ToDoList> FilteredLists => 
+        context.ToDoList
+            .Include(l => l.Items)
+            .Where(l => l.Name!.Contains(nameFilter))
+            .OrderByDescending(l => l.CreatedDate);
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}
