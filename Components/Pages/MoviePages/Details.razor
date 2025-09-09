@@ -4,33 +4,75 @@
 @inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Details</PageTitle>
+<PageTitle>Movie Details</PageTitle>
 
-<h1>Details</h1>
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">🎬 Movie Details</h1>
+        <p class="page-subtitle">Explore the complete movie information</p>
+    </div>
+</div>
 
-<div>
-    <h2>Movie</h2>
-    <hr />
+<div class="container">
     @if (movie is null)
     {
-        <p><em>Loading...</em></p>
+        <div class="movie-details-card">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <span>Loading movie details...</span>
+            </div>
+        </div>
     }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">Title</dt>
-            <dd class="col-sm-10">@movie.Title</dd>
-            <dt class="col-sm-2">Release Date</dt>
-            <dd class="col-sm-10">@movie.ReleaseDate</dd>
-            <dt class="col-sm-2">Genre</dt>
-            <dd class="col-sm-10">@movie.Genre</dd>
-            <dt class="col-sm-2">Price</dt>
-            <dd class="col-sm-10">@movie.Price</dd>
-            <dt class="col-sm-2">Rating</dt>
-            <dd class="col-sm-10">@movie.Rating</dd>
-        </dl>
-        <div>
-            <a href="@($"/movies/edit?id={movie.Id}")">Edit</a> |
-            <a href="@($"/movies")">Back to List</a>
+    else 
+    {
+        <div class="movie-details-card">
+            <div class="movie-header">
+                <h2 class="movie-title">
+                    🎬 @movie.Title
+                    <span class="movie-rating">@movie.Rating</span>
+                </h2>
+            </div>
+            
+            <div class="movie-body">
+                <div class="movie-details-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            📅 Release Date
+                        </div>
+                        <p class="detail-value date">@movie.ReleaseDate.ToString("MMMM dd, yyyy")</p>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            🎭 Genre
+                        </div>
+                        <p class="detail-value genre">@movie.Genre</p>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            💰 Price
+                        </div>
+                        <p class="detail-value price">@movie.Price.ToString("C")</p>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            ⭐ Rating
+                        </div>
+                        <p class="detail-value">@movie.Rating</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="actions-section">
+                <a href="@($"/movies/edit?id={movie.Id}")" class="action-btn action-btn-primary">
+                    ✏️ Edit Movie
+                </a>
+                <a href="/movies" class="action-btn action-btn-secondary">
+                    ← Back to Movies
+                </a>
+            </div>
         </div>
     }
 </div>

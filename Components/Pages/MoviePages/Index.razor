@@ -7,35 +7,62 @@
 @inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
 @implements IAsyncDisposable
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Movies Collection</PageTitle>
 
-<h1>Index</h1>
-
-<p>
-    <input type="search" @bind="titleFilter" @bind:event="oninput" />
-</p>
-
-<p>
-    <a href="movies/create">Create New</a>
-</p>
-
-<div>
-    <QuickGrid Class="table" Items="FilteredMovies" Pagination="pagination">
-        <PropertyColumn Property="movie => movie.Title" Sortable="true" />
-        <PropertyColumn Property="movie => movie.ReleaseDate" Title="Release Date" />
-        <PropertyColumn Property="movie => movie.Genre" />
-        <PropertyColumn Property="movie => movie.Price" />
-        <PropertyColumn Property="movie => movie.Rating" />
-
-        <TemplateColumn Context="movie">
-            <a href="@($"movies/edit?id={movie.Id}")">Edit</a> |
-            <a href="@($"movies/details?id={movie.Id}")">Details</a> |
-            <a href="@($"movies/delete?id={movie.Id}")">Delete</a>
-        </TemplateColumn>
-    </QuickGrid>
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">🎬 Movies Collection</h1>
+        <p class="page-subtitle">Discover and manage your favorite movies</p>
+    </div>
 </div>
 
-<Paginator State="pagination" />
+<div class="container">
+    <div class="search-section">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="search" 
+                           class="search-input" 
+                           placeholder="Search movies by title..." 
+                           @bind="titleFilter" 
+                           @bind:event="oninput" />
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <a href="movies/create" class="create-button">
+                    ➕ Add New Movie
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <QuickGrid Class="table" Items="FilteredMovies" Pagination="pagination">
+            <PropertyColumn Property="movie => movie.Title" Sortable="true" Title="🎬 Title" />
+            <PropertyColumn Property="movie => movie.ReleaseDate" Title="📅 Release Date" Format="yyyy-MM-dd" />
+            <PropertyColumn Property="movie => movie.Genre" Title="🎭 Genre" />
+            <PropertyColumn Property="movie => movie.Price" Title="💰 Price" Format="C" />
+            <PropertyColumn Property="movie => movie.Rating" Title="⭐ Rating" />
+
+            <TemplateColumn Title="Actions" Context="movie">
+                <div class="action-buttons">
+                    <a href="@($"movies/edit?id={movie.Id}")" class="action-btn action-btn-edit">
+                        ✏️ Edit
+                    </a>
+                    <a href="@($"movies/details?id={movie.Id}")" class="action-btn action-btn-details">
+                        👁️ Details
+                    </a>
+                    <a href="@($"movies/delete?id={movie.Id}")" class="action-btn action-btn-delete">
+                        🗑️ Delete
+                    </a>
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+    </div>
+
+    <Paginator State="pagination" />
+</div>
 
 @code {
     private PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
