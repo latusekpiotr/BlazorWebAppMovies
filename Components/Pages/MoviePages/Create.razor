@@ -23,15 +23,7 @@
         
         <EditForm method="post" Model="Movie" OnValidSubmit="AddMovie" FormName="create" Enhance>
             <DataAnnotationsValidator />
-            
-            @if (Context?.GetValidationMessages().Any() == true)
-            {
-                <div class="form-body">
-                    <div class="validation-summary">
-                        <ValidationSummary />
-                    </div>
-                </div>
-            }
+            <ValidationSummary class="text-danger" />
             
             <div class="form-body">
                 <div class="form-grid">

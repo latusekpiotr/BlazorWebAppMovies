@@ -34,15 +34,7 @@
             
             <EditForm method="post" Model="Movie" OnValidSubmit="UpdateMovie" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
-                
-                @if (Context?.GetValidationMessages().Any() == true)
-                {
-                    <div class="form-body">
-                        <div class="validation-summary">
-                            <ValidationSummary />
-                        </div>
-                    </div>
-                }
+                <ValidationSummary class="text-danger" />
                 
                 <div class="form-body">
                     <input type="hidden" name="Movie.Id" value="@Movie.Id" />
